@@ -18,6 +18,8 @@ http.listen(12345, function(){
   console.log('listening on *:12345');
 });
 
+// TODO: on disconnect, delete child process?
+// TODO: if shim dies, we seem to, too
 io.on('connection', function(socket){
 
     var child;
@@ -27,14 +29,14 @@ io.on('connection', function(socket){
     });
 
     socket.on('code', function(msg){
-    	console.log(msg)
-        //child = spawn('python3 shim.py', {stdin: msg.code, stdio: ['pipe', 'pipe', 'pipe']})
+
         child = spawn('python3', ['shim.py'], {stdio: 'pipe'});
         child.stdin.write(msg + '\n')
 
         //child.stdout.setEncoding('utf8')
 	child.stdout.on('data', function(data) {
 	    console.log(data.toString())
+	    socket.emit('info', data.toString())
         })
 	child.stderr.on('data', function(data) {
 	    console.log(data.toString())

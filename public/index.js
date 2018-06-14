@@ -8,26 +8,26 @@ $(document).ready(function() {
     $('#submit').on('click', function(){
         msg = {
 	    'code': $('#code').text(),
-	    'argv': $('#argv').val()
+	    'argv': $('#argv').val(),
 	    'stdin': $('#stdin').val()
-        }
+        };
+        msg['argv'] = JSON.parse(msg['argv'])
+        msg['stdin'] += '\n';
         socket.emit('code', JSON.stringify(msg));
         return false;
     });
 
-    socket.on('response', function(response) {
-    	console.log(response);
-        var model = response.model;
-	$('#heatmap').html("");
-    	if (response.success === false) {
-	    $('#heatmap').text('Something went wrong! Maybe your code doesn\'t parse correctly?');
-	} else {
-            heatmap = draw(response.results[model], model);
-            //displayCode(response.results.fixed_code);
-	}
+    $('#next').on('click', function(){
+        msg = {
+	    'cmd': 'next',
+        };
+        socket.emit('cmd', JSON.stringify(msg));
+        return false;
     });
 
-
+    socket.on('info', function(msg) {
+        $("#output").text(msg)
+    });
 
     var start = `
 #include <cs50.h> //adds GetString(), which basically renames char to string
