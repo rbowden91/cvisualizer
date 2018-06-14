@@ -9,9 +9,7 @@
     <script src="https://cdn.quilljs.com/1.2.6/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.0/d3.min.js"></script>
     <!--<script src="data.js"></script>-->
-    <script src="tree.js"></script>
-    <script src="linear.js"></script>
-    <script src="heatmap.js"></script>
+    <script src="index.js"></script>
 
     <style>
         .node circle {
@@ -71,14 +69,15 @@
   <body>
     <div id='submit-div'>
 	<form id="submit_code">
-	    <input type="radio" name="model" value="ast" checked> Tree
-	    <input type="radio" name="model" value="linear"> Linear
+	    argv: <input name="argv" id="argv" value='["./vigenere.c", "HelLo"]'>
+	    stdin: <input name="stdin" id="stdin" value='worLd\n'>
 	    <button id="submit">Submit!</button>
+	    <button id="next">Next!</button>
 	</form>
     </div>
     <div id="code" contenteditable="true"></div>
     <!--<div id="fixed_code"></div>-->
-    <div id="expectation"></div>
+    <div id="output"></div>
     <div style="clear:both"></div>
     <div id="heatmap"></div>
   </body>
