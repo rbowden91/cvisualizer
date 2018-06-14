@@ -1,0 +1,3 @@
+[submodule "centipyde"]
+	path = centipyde
+	url = git@github.com:rbowden91/centipyde.git
