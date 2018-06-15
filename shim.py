@@ -5,6 +5,8 @@ from pycparser import c_ast
 from centipyde.centipyde import interpret
 from centipyde.centipyde.values import *
 
+from get_coordinates import get_coordinates
+
 def process(args):
     if isinstance(args, (tuple, list)):
         args = list(args)
@@ -43,6 +45,7 @@ code = json.loads(code)
 assert 'code' in code
 interpreter = interpret.init_interpreter(code['code'], True)
 interpreter.run()
+coords = get_coordinates(interpreter.ast)
 interpreter.setup_main(code['argv'], code['stdin'])
 response = json.dumps({'success': True, 'status': 'interpreter loaded code'})
 print(response + "\n\n")
@@ -55,7 +58,7 @@ for line in sys.stdin:
             output = {
                 'type': 'node-visit',
                 'node': output.__class__.__name__,
-                'args': [str(output.coord)]
+                'coords': coords[output]
             }
         else:
             output = {
@@ -64,8 +67,7 @@ for line in sys.stdin:
             }
 
         #output = str(output)
-        print(output)
         if output is None:
             ret = interpreter.k.get_passthrough(0)
-            json.dumps({'success': True, 'returncode': ret.value})
-        json.dumps({'success': True, 'output': output})
+            print(json.dumps({'success': True, 'returncode': ret.value}))
+        print(json.dumps({'success': True, 'output': output}))
