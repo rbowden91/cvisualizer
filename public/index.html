@@ -8,62 +8,58 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdn.quilljs.com/1.2.6/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.0/d3.min.js"></script>
+    <script src="ace/ace.js"></script>
     <!--<script src="data.js"></script>-->
     <script src="index.js"></script>
 
     <style>
-        .node circle {
-            fill: #fff;
-            stroke: steelblue;
-            stroke-width: 6px;
-        }
-
-        .node text { font: 12px sans-serif; }
-
-        .node--internal text {
-            text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
-        }
-
-        .link {
-            fill: none;
-            stroke: #ccc;
-            stroke-width: 2px;
-        }
-
-
-        #expectation {
-            white-space: pre;
-            font-family: monospace;
-            font:14px;
-        }
-
-
-        #code, #linear_heatmap{
-            border: 1px solid black;
-            width: 700px;
-            white-space: pre-wrap;       /* css-3 */
-            white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-            white-space: -pre-wrap;      /* Opera 4-6 */
-            white-space: -o-pre-wrap;    /* Opera 7 */
-            word-wrap: break-word;       /* Internet Explorer 5.5+ */
-            float: left;
-            font-family: monospace;
-        }
-
-        #expectation {
-            /*position: absolute;*/
-            /*display: none;*/
-            background-color: white;
-            border: 1px solid black;
-            float: left;
-            /*height: 150px;*/
-        }
-
         #submit-div {
             width:100%;
             padding-top:100px;
         }
 
+        #editor {
+            position: relative !important;
+            border: 1px solid lightgray;
+            margin: 0;
+            height: 800px;
+            width: 800px;
+            float: left;
+        }
+
+        .highlight {
+            background: rgba(50,50,255,0.8);
+            position: absolute;
+        }
+
+        #stack, #memory {
+            width: 400px;
+            border: 10px solid lightgray;
+            height: 200px;
+        }
+        .stackframe {
+            height: 100%;
+            min-width: 50px;
+            border-left: 2px solid black;
+        }
+        .scope {
+            float: left;
+            height: 100%;
+            min-width: 20px;
+            border-left: 2px solid grey;
+        }
+        .memdiv {
+            padding-top: 20px;
+            clear:both;
+        }
+        .membox {
+            float: left;
+            border: 1px solid grey;
+            min-width: 20px;
+            height: 20px;
+            text-align: center;
+            vertical-align: middle;
+        }
     </style>
   </head>
   <body>
@@ -75,10 +71,22 @@
 	    <button id="next">Next!</button>
 	</form>
     </div>
-    <div id="code" contenteditable="true"></div>
+    <div id="editor"></div>
     <!--<div id="fixed_code"></div>-->
+    <div style='float:left'>
+        <div>Stack</div>
+        <div id="stack">
+            <div class="stackframe">
+                <div class="scope">
+                </div>
+            </div>
+        </div>
+        <div style='padding-top:30px;'>
+            <div>Memory</div>
+            <div id="memory">
+            </div>
+        </div>
+    </div>
     <div id="output"></div>
-    <div style="clear:both"></div>
-    <div id="heatmap"></div>
   </body>
 </html>

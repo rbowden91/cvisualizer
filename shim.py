@@ -8,13 +8,16 @@ from centipyde.centipyde.values import *
 from get_coordinates import get_coordinates
 
 def process(args):
+    if isinstance(args, dict):
+        for i in args:
+            args[i] = process(args[i])
     if isinstance(args, (tuple, list)):
         args = list(args)
         for i in range(len(args)):
             args[i] = process(args[i])
     elif isinstance(args, (bytearray, bytes)):
-        # TODO: goes wrong if they screwed up their strings...
-        args = args.decode('latin-1')
+        # can't just decode the string, because it goes wrong if they screwed up their strings
+        args = list(args)
     elif isinstance(args, Val):
         args = args.to_dict()
         args['value'] = process(args['value'])
@@ -46,9 +49,12 @@ assert 'code' in code
 interpreter = interpret.init_interpreter(code['code'], True)
 interpreter.run()
 coords = get_coordinates(interpreter.ast)
+#interpreter.ast.show(showcoord=True)
 interpreter.setup_main(code['argv'], code['stdin'])
-response = json.dumps({'success': True, 'status': 'interpreter loaded code'})
-print(response + "\n\n")
+response = json.dumps({'success': True, 'type': 'load code'})
+# TODO: need to add newlines, and then make sure that the server waits for newlines, to make sure full message is
+# received??
+print(response)
 
 for line in sys.stdin:
     cmd = json.loads(line)
@@ -56,18 +62,21 @@ for line in sys.stdin:
         output = interpreter.step()
         if isinstance(output, c_ast.Node):
             output = {
-                'type': 'node-visit',
-                'node': output.__class__.__name__,
-                'coords': coords[output]
+                'type': 'node_visit',
+                'args': {
+                    'node': output.__class__.__name__,
+                    'coords': coords[output]
+                }
+            }
+        elif output is None:
+            ret = interpreter.k.get_passthrough(0)
+            output = {
+                'type': 'exit',
+                'args': ret.value
             }
         else:
             output = {
                 'type': output[0],
                 'args': process(output[1:])
             }
-
-        #output = str(output)
-        if output is None:
-            ret = interpreter.k.get_passthrough(0)
-            print(json.dumps({'success': True, 'returncode': ret.value}))
-        print(json.dumps({'success': True, 'output': output}))
+        print(json.dumps({'type': 'cmd', 'success': True, 'output': output}))
