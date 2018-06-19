@@ -1,5 +1,8 @@
 var message_handlers = {
     node_visit: function(args) {
+        if (args.coords.right_left === null) {
+            args.coords.right_left = args.coords.right_most;
+        }
         highlight(args.coords.left_most, args.coords.right_left);
     },
 
@@ -50,6 +53,10 @@ var message_handlers = {
         var divid = $('<div>').attr('data-name', arg.name);
         divid.append(span_type_and_name).append(spanvalue);
         frame.append(divid);
+    },
+
+    exit: function(args) {
+        alert("Program exited with code " + args.code + ' and stdout ' + args.stdout);
     }
 };
 
@@ -111,11 +118,13 @@ function skip_comments_and_whitespace(code, coord, end_coord) {
     while (true) {
         if (coord[1] >= code.length) {
             coord[1] -= 1;
-            coord[2] = code[coord[1]].length - 1;
+            coord[2] = code[coord[1]].length;
+            if (coord[2] !== 0)
+		coord[2] -= 1;
             break;
         } else if (end_coord !== null && coord[1] == end_coord[1] && coord[2] >= end_coord[2]) {
             break;
-        } else if (coord[2] === code[coord[1]].length) {
+        } else if (coord[2] >= code[coord[1]].length) {
             coord[1] += 1;
             coord[2] = 0;
         } else if (in_comment) {
@@ -143,7 +152,7 @@ function skip_comments_and_whitespace(code, coord, end_coord) {
                 break;
             }
         }
-        console.log(coord[1], coord[2], end_coord, code[coord[1]][coord[2]], last_valid);
+        //console.log(coord[1], coord[2], end_coord, code[coord[1]][coord[2]], last_valid);
     }
     if (end_coord !== null && typeof last_valid !== 'undefined') {
         end_coord[1] = last_valid[0];
@@ -168,7 +177,7 @@ function highlight(start_coord, end_coord) {
     code = editor.getValue().split("\n");
     skip_comments_and_whitespace(code, start_coord, null);
     skip_comments_and_whitespace(code, start_coord.slice(), end_coord);
-    console.log(start_coord, end_coord);
+    //console.log(start_coord, end_coord);
 
     currentMarker = editor.session.addMarker(new Range(start_coord[1],start_coord[2],end_coord[1],end_coord[2]), "highlight", "marked", false)
 }
@@ -203,6 +212,31 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#finish').on('click', function() {
+        msg = {
+	    'cmd': 'finish',
+        };
+        socket.emit('cmd', msg);
+        return false;
+    });
+
+    // TODO: should make a "stop"
+    $('#play').on('click', function() {
+        msg = {
+	    'cmd': 'play',
+        };
+        socket.emit('cmd', msg);
+        return false;
+    });
+
+    $('#step').on('click', function() {
+        msg = {
+	    'cmd': 'step',
+        };
+        socket.emit('cmd', msg);
+        return false;
+    });
+
     $('#next').on('click', function() {
         msg = {
 	    'cmd': 'next',
@@ -225,7 +259,7 @@ $(document).ready(function() {
         msg = JSON.parse(msg);
         console.log(msg);
         if (msg.type === 'cmd') {
-            $("#output").text(JSON.stringify(msg.output));
+            //$("#output").text(JSON.stringify(msg.output));
             if (typeof message_handlers[msg.output.type] === 'undefined') {
                 alert('Unimplemented output type ' + msg.output.type);
             } else {
