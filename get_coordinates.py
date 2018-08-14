@@ -5,7 +5,7 @@
 import sys
 import operator
 from copy import deepcopy
-from pycparser import c_generator, c_ast, c_lexer, c_parser, preprocess_file
+from pycparser import c_generator, c_ast, c_lexer, c_parser, preprocess_file # type:ignore
 
 def get_min_max(coord1, coord2, op):
     if coord1 is None:

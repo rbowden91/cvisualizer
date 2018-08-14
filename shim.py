@@ -1,9 +1,8 @@
 import sys
 import json
 
-from pycparser import c_ast
-from centipyde.centipyde import interpret
-from centipyde.centipyde.values import *
+from pycparser import c_ast # type:ignore
+from centipyde import interpret, c_values
 
 from get_coordinates import get_coordinates
 
@@ -40,11 +39,11 @@ class Unbuffered(object):
    def __getattr__(self, attr):
        return getattr(self.stream, attr)
 
-# unsure if this is necessary
-sys.stdout = Unbuffered(sys.stdout)
+# TODO: unsure if this is necessary
+sys.stdout = Unbuffered(sys.stdout) # type:ignore
 
-code = sys.stdin.readline()
-code = json.loads(code)
+json_in = sys.stdin.readline()
+code = json.loads(json_in)
 assert 'code' in code
 interpreter = interpret.init_interpreter(code['code'], True)
 interpreter.run()
