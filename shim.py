@@ -3,7 +3,8 @@ import json
 import time
 
 from pycparser import c_ast # type:ignore
-from centipyde import interpret, c_values
+from centipyde.preprocess import parse_ast
+from centipyde.c_runtime import CRuntime
 
 from get_coordinates import get_coordinates
 
@@ -46,11 +47,14 @@ sys.stdout = Unbuffered(sys.stdout) # type:ignore
 json_in = sys.stdin.readline()
 code = json.loads(json_in)
 assert 'code' in code
-interpreter = interpret.init_interpreter(code['code'], True)
-interpreter.run()
-coords = get_coordinates(interpreter.ast)
+
+ast = parse_ast(code['code'], True)
+crt = CRuntime(ast)
+
+
+coords = get_coordinates(ast)
 #interpreter.ast.show(showcoord=True)
-interpreter.setup_main(code['argv'], code['stdin'])
+crt.setup_main(code['argv'], code['stdin'])
 response = json.dumps({'success': True, 'type': 'load code'})
 # TODO: need to add newlines, and then make sure that the server waits for newlines, to make sure full message is
 # received??
@@ -60,7 +64,7 @@ for line in sys.stdin:
     cmd = json.loads(line)
     recent_node = None
     while True:
-        output = interpreter.step()
+        output = crt.interpreter.step()
         if isinstance(output, c_ast.Node):
             # TODO: just use get_coordinates to tag stmt-level things
             if cmd['cmd'] in ['next', 'play'] and isinstance(output, (c_ast.Decl, c_ast.For, c_ast.Assignment,
@@ -74,10 +78,10 @@ for line in sys.stdin:
                     }
             else: continue
         elif output is None:
-            ret = interpreter.k.get_passthrough(0)
+            ret = crt.interpreter.k.get_passthrough(0)
             output = {
                 'type': 'exit',
-                'args': { 'code': ret.value if ret.value is not None else 0, 'stdout': interpreter.stdout }
+                'args': { 'code': ret.value if ret.value is not None else 0, 'stdout': crt.filesystem['<con>'].log }
             }
             print(json.dumps({'type': 'cmd', 'success': True, 'output': output}))
             break
